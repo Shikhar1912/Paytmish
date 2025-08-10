@@ -5,7 +5,6 @@ const { User, Account } = require("../db");
 const auth = require("../auth");
 const userRouter = express.Router();
 const mongoose = require("mongoose");
-require("dotenv").config();
 
 const createUser = async (userData) => {
   const session = await mongoose.startSession();
@@ -14,13 +13,13 @@ const createUser = async (userData) => {
     const newUser = new User({
       ...userData,
     });
-    const userCreated = await newUser.save();
+    const userCreated = await newUser.save({ session });
     const userAccount = new Account({
       userId: userCreated._id,
       balance: 0,
     });
-    const account = userAccount.save();
-    session.commitTransaction();
+    const account = await userAccount.save({ session });
+    await session.commitTransaction();
     if (userCreated) {
       const token = jwt.sign(
         {
@@ -28,35 +27,51 @@ const createUser = async (userData) => {
         },
         process.env.JWT_SECRET
       );
-      return `Bearer ${token}`;
+      // console.log(token + "ahaha");
+      return {
+        auth: `Bearer ${token}`,
+        id: userCreated._id,
+      };
     }
   } catch (error) {
-    session.abortTransaction();
-    console.log(error);
+    await session.abortTransaction();
+    // console.log(error);
     return false;
   } finally {
     session.endSession();
   }
 };
 userRouter.post("/addUser", async (req, res) => {
+  const validUser = userSchema.safeParse(req.body);
+  if (!validUser.success) return res.status(400).send("Sahi se daal");
   const userExist = await User.findOne({
     username: req.body.username,
   });
-  if (userExist) return res.send("username taken");
-  const validUser = userSchema.safeParse(req.body);
+  if (userExist) return res.status(409).send("username taken");
 
   if (validUser.success) {
     const userData = req.body;
-    const newUser = createUser(userData);
-    if (newUser) res.status(200).send(newUser);
+    const data = await createUser(userData);
+    console.log(data.auth);
+    if (data.auth)
+      return res.status(200).json({
+        token: data.auth,
+        id: data.id,
+        username: userData.username,
+        name: {
+          first: userData.firstName,
+          last: userData.lastName,
+        },
+      });
     else res.status(500).send("Couldnt create user");
   }
 });
 
-userRouter.get("/getUser", async (req, res) => {
+userRouter.post("/getUser", async (req, res) => {
+  const { username, password } = req.body;
   const userExist = await User.findOne({
-    username: req.body.username,
-    password: req.body.password,
+    username,
+    password,
   });
   if (userExist) {
     const token = jwt.sign(
@@ -65,7 +80,15 @@ userRouter.get("/getUser", async (req, res) => {
       },
       process.env.JWT_SECRET
     );
-    res.status(200).send(`Bearer ${token}`);
+    res.status(200).json({
+      token: `Bearer ${token}`,
+      username: userExist.username,
+      name: {
+        first: userExist.firstName,
+        last: userExist.lastName,
+      },
+      id: userExist._id,
+    });
   } else res.status(404).send(`User not found`);
 });
 

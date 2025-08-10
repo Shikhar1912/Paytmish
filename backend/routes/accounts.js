@@ -38,6 +38,23 @@ accountRouter.put("/transaction", auth, async (req, res) => {
   if (amount <= 0) return res.send("Invalid amount");
   const successfulTrans = await tranferFunds(senderId, recieverId, amount);
   if (successfulTrans) res.status(200).send("Transaction Successful");
-  else res.status(500).send("Transaction Failed");
+  else res.status(403).send("Transaction Failed");
+});
+
+accountRouter.get("/balance", auth, async (req, res) => {
+  try {
+    const user = await Account.findOne({
+      userId: req.userId,
+    });
+    const userBalance = await user.balance;
+    return res.status(200).json({
+      balance: userBalance,
+    });
+  } catch (err) {
+    return res.status(404).json({
+      message: "Couldn't access balance",
+      err: err,
+    });
+  }
 });
 module.exports = accountRouter;
