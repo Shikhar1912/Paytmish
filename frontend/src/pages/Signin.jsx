@@ -13,22 +13,56 @@ function Signin() {
   const username = useStore((state) => state.username);
   const setUserId = useStore((state) => state.setUserId);
   const [password, setPassword] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  // Form validation
+  const validateForm = () => {
+    if (!username.trim()) {
+      setError("Username is required");
+      return false;
+    }
+    if (!password.trim()) {
+      setError("Password is required");
+      return false;
+    }
+    if (password.length < 6) {
+      setError("Password must be at least 6 characters");
+      return false;
+    }
+    return true;
+  };
+
   async function handleClick() {
+    setError("");
+
+    if (!validateForm()) {
+      return;
+    }
+
+    setIsLoading(true);
     const userUrl = import.meta.env.VITE_APP_API_USER;
-    // console.log(userUrl + "/getUser");
+
     try {
       const response = await axios.post(userUrl + "/getUser", {
         username,
         password,
       });
+
       localStorage.setItem("token", response.data.token);
       setUserId(response.data.id);
-
-      if (response) navigate("/dashboard");
+      navigate("/dashboard");
     } catch (err) {
-      if (err.status === 404) alert("Wrong Credentials");
+      if (err.response?.status === 401) {
+        setError("Invalid credentials");
+      } else if (err.response?.status === 404) {
+        setError("User not found");
+      } else {
+        setError("An error occurred. Please try again.");
+      }
+    } finally {
+      setIsLoading(false);
     }
-    // console.log(response.status);
   }
   return (
     <div className="h-screen bg-slate-300 flex justify-center">
@@ -36,6 +70,13 @@ function Signin() {
         <div className="rounded-lg bg-white w-80 text-center py-2 h-max px-4">
           <Header>Sign In</Header>
           <Subheading>Enter your credentials to Sign In</Subheading>
+
+          {error && (
+            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+              {error}
+            </div>
+          )}
+
           <Inputbox
             placeholder="Enter your username"
             label="Username"
@@ -47,15 +88,20 @@ function Signin() {
             label="Password"
             value={password}
             setValue={setPassword}
+            type="password"
           />
           <div className="pt-4">
-            <Button text="Sign In" onClick={handleClick}></Button>
+            <Button
+              text={isLoading ? "Signing In..." : "Sign In"}
+              onClick={handleClick}
+              disabled={isLoading}
+            />
           </div>
           <BottomWarning
             label="Sign Up"
             link="/signup"
             message="New to Paytmish"
-          ></BottomWarning>
+          />
         </div>
       </div>
     </div>

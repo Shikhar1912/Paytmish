@@ -14,10 +14,48 @@ function Signup() {
   const firstName = useStore((state) => state.firstName);
   const setUserId = useStore((state) => state.setUserId);
   const [password, setPassword] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  // Form validation
+  const validateForm = () => {
+    if (!firstName.trim()) {
+      setError("First name is required");
+      return false;
+    }
+    if (!lastName.trim()) {
+      setError("Last name is required");
+      return false;
+    }
+    if (!username.trim()) {
+      setError("Username is required");
+      return false;
+    }
+    if (username.length < 3) {
+      setError("Username must be at least 3 characters");
+      return false;
+    }
+    if (!password.trim()) {
+      setError("Password is required");
+      return false;
+    }
+    if (password.length < 6) {
+      setError("Password must be at least 6 characters");
+      return false;
+    }
+    return true;
+  };
+
   async function handleClick() {
-    // console.log("clicked");
+    setError("");
+
+    if (!validateForm()) {
+      return;
+    }
+
+    setIsLoading(true);
     const userUrl = import.meta.env.VITE_APP_API_USER;
-    console.log(userUrl);
+
     try {
       const res = await axios.post(userUrl + "/addUser", {
         firstName,
@@ -25,13 +63,22 @@ function Signup() {
         username,
         password,
       });
-      console.log(res.data);
 
       localStorage.setItem("token", res.data.token);
       setUserId(res.data.id);
+      useStore.getState().setFirstName("");
+      useStore.getState().setLastName("");
       navigate("/dashboard");
     } catch (err) {
-      alert(err.response.data);
+      if (err.response?.status === 409) {
+        setError("Username already taken");
+      } else if (err.response?.status === 400) {
+        setError("Invalid input data");
+      } else {
+        setError("An error occurred. Please try again.");
+      }
+    } finally {
+      setIsLoading(false);
     }
   }
   return (
@@ -42,6 +89,13 @@ function Signup() {
           <Subheading>
             Welcome to Paytmish. Enter your details to sign up.
           </Subheading>
+
+          {error && (
+            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+              {error}
+            </div>
+          )}
+
           <Inputbox
             placeholder="Enter your first name"
             label="First Name"
@@ -56,7 +110,7 @@ function Signup() {
           />
           <Inputbox
             placeholder="Enter your username"
-            label="username"
+            label="Username"
             value={username}
             setValue={useStore((state) => state.setUsername)}
           />
@@ -65,16 +119,21 @@ function Signup() {
             label="Password"
             value={password}
             setValue={setPassword}
+            type="password"
           />
 
           <div className="pt-4">
-            <Button text={"Sign Up"} onClick={handleClick}></Button>
+            <Button
+              text={isLoading ? "Signing Up..." : "Sign Up"}
+              onClick={handleClick}
+              disabled={isLoading}
+            />
           </div>
           <BottomWarning
             label="Sign In"
             link="/signin"
             message="Already registered."
-          ></BottomWarning>
+          />
         </div>
       </div>
     </div>

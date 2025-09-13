@@ -9,7 +9,7 @@ const auth = (req, res, next) => {
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     req.userId = decoded.userId;
-    next();
+    if (decoded) next();
   } catch {
     res.status(403).send("fir pela gaya");
   }

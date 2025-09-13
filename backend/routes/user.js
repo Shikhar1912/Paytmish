@@ -1,5 +1,6 @@
 const express = require("express");
 const jwt = require("jsonwebtoken");
+const bcrypt = require("bcrypt");
 const { userSchema, updateUserSchema } = require("../zodSchema/userSchema");
 const { User, Account } = require("../db");
 const auth = require("../auth");
@@ -10,13 +11,19 @@ const createUser = async (userData) => {
   const session = await mongoose.startSession();
   try {
     session.startTransaction();
+
+    // Hash the password
+    const saltRounds = 10;
+    const hashedPassword = await bcrypt.hash(userData.password, saltRounds);
+
     const newUser = new User({
       ...userData,
+      password: hashedPassword,
     });
     const userCreated = await newUser.save({ session });
     const userAccount = new Account({
       userId: userCreated._id,
-      balance: 0,
+      balance: 1000,
     });
     const account = await userAccount.save({ session });
     await session.commitTransaction();
@@ -25,7 +32,8 @@ const createUser = async (userData) => {
         {
           userId: userCreated._id,
         },
-        process.env.JWT_SECRET
+        process.env.JWT_SECRET,
+        { expiresIn: "1h" }
       );
       // console.log(token + "ahaha");
       return {
@@ -43,7 +51,7 @@ const createUser = async (userData) => {
 };
 userRouter.post("/addUser", async (req, res) => {
   const validUser = userSchema.safeParse(req.body);
-  if (!validUser.success) return res.status(400).send("Sahi se daal");
+  if (!validUser.success) return res.status(400).send("Invalid Arguments");
   const userExist = await User.findOne({
     username: req.body.username,
   });
@@ -71,35 +79,55 @@ userRouter.post("/getUser", async (req, res) => {
   const { username, password } = req.body;
   const userExist = await User.findOne({
     username,
-    password,
   });
+
   if (userExist) {
-    const token = jwt.sign(
-      {
-        userId: userExist._id,
-      },
-      process.env.JWT_SECRET
-    );
-    res.status(200).json({
-      token: `Bearer ${token}`,
-      username: userExist.username,
-      name: {
-        first: userExist.firstName,
-        last: userExist.lastName,
-      },
-      id: userExist._id,
-    });
-  } else res.status(404).send(`User not found`);
+    // Compare password using bcrypt
+    const isPasswordValid = await bcrypt.compare(password, userExist.password);
+
+    if (isPasswordValid) {
+      const token = jwt.sign(
+        {
+          userId: userExist._id,
+        },
+        process.env.JWT_SECRET
+      );
+      res.status(200).json({
+        token: `Bearer ${token}`,
+        username: userExist.username,
+        name: {
+          first: userExist.firstName,
+          last: userExist.lastName,
+        },
+        id: userExist._id,
+      });
+    } else {
+      res.status(401).json({ message: "Invalid credentials" });
+    }
+  } else {
+    res.status(404).json({ message: "User not found" });
+  }
 });
 
 userRouter.put("/updateUser", auth, async (req, res) => {
   try {
     // console.log(req.userId);
     const validReq = updateUserSchema.safeParse(req.body);
-    if (!validReq.success) return res.status(403).send("Invalid Inputs");
+    if (!validReq.success)
+      return res.status(403).json({ message: "Invalid Inputs" });
+
+    // Prepare update data
+    let updateData = { ...req.body };
+
+    // Hash password if it's being updated
+    if (updateData.password) {
+      const saltRounds = 10;
+      updateData.password = await bcrypt.hash(updateData.password, saltRounds);
+    }
+
     const updated = await User.findOneAndUpdate(
       { _id: req.userId }, // Correct query object
-      { $set: req.body }, // Use $set to only update provided fields
+      { $set: updateData }, // Use $set to only update provided fields
       { new: true } // Optional: return the updated document
     );
     console.log(updated);

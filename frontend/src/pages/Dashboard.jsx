@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import Appbar from "../components/Appbar";
 import Balance from "../components/Balance";
 import Users from "../components/Users";
+import TransactionHistory from "../components/TransactionHistory";
+import LoadingSpinner from "../components/LoadingSpinner";
 import axios from "axios";
 import { useStore } from "../../store";
 function Dashboard() {
@@ -34,11 +36,16 @@ function Dashboard() {
       <Appbar />
       <div className="px-10 pt-6 flex flex-col gap-5">
         <Balance value={balance} />
-        {userList.length === 0 ? (
-          <h1>Loading...</h1>
-        ) : (
-          <Users users={userList} />
-        )}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+          {userList.length === 0 ? (
+            <div className="col-span-2 flex justify-center items-center py-8">
+              <LoadingSpinner size="large" />
+            </div>
+          ) : (
+            <Users users={userList} />
+          )}
+          <TransactionHistory />
+        </div>
       </div>
     </div>
   );
