@@ -39,7 +39,6 @@ A full-stack digital wallet application built with React, Node.js, and MongoDB. 
 - **JWT** - Authentication
 - **bcrypt** - Password hashing
 - **Zod** - Input validation
-- **Jest** - Testing framework
 
 ### Frontend
 
@@ -114,17 +113,6 @@ npm run dev
 - Frontend: http://localhost:5173
 - Backend: http://localhost:3000
 
-## 🧪 Testing
-
-### Backend Tests
-
-```bash
-cd Backend
-npm test
-```
-
-_Note: Tests are already set up with Jest. You can add more test cases in the `tests` folder._
-
 ## 📁 Project Structure
 
 ```
@@ -136,8 +124,6 @@ Paytmish/
 │   │   └── accounts.js       # Account/transaction routes
 │   ├── zodSchema/
 │   │   └── userSchema.js     # Input validation schemas
-│   ├── tests/
-│   │   └── user.test.js      # Test files
 │   ├── auth.js               # JWT middleware
 │   ├── db.js                 # Database configuration
 │   ├── index.js              # Server entry point
@@ -185,31 +171,6 @@ Paytmish/
 - **TransactionHistory**: Transaction log with visual indicators
 - **Inputbox**: Reusable form input component
 - **Button**: Reusable button with loading states
-
-## 🚀 Deployment
-
-### Backend Deployment
-
-1. Set up a MongoDB Atlas cluster or use a cloud MongoDB service
-2. Update the `DB_URI` in your environment variables
-3. Deploy to platforms like Heroku, Railway, or AWS
-
-### Frontend Deployment
-
-1. Build the production version: `npm run build`
-2. Deploy to platforms like Vercel, Netlify, or AWS S3
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch: `git checkout -b feature-name`
-3. Commit your changes: `git commit -m 'Add some feature'`
-4. Push to the branch: `git push origin feature-name`
-5. Submit a pull request
-
-## 📝 License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
 
 ## 🎯 Future Enhancements
 
