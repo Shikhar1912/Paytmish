@@ -38,9 +38,7 @@ function Dashboard() {
         <Balance value={balance} />
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
           {userList.length === 0 ? (
-            <div className="col-span-2 flex justify-center items-center py-8">
-              <LoadingSpinner size="large" />
-            </div>
+            <LoadingSpinner size="large" />
           ) : (
             <Users users={userList} />
           )}

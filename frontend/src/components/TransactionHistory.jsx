@@ -50,8 +50,10 @@ function TransactionHistory() {
   }
 
   return (
-    <div className="bg-white rounded-lg shadow p-4 pb-2">
-      <h3 className="text-lg font-semibold mb-4">Transaction History</h3>
+    <div className="bg-white rounded-lg shadow p-4 ">
+      <h3 className="text-lg font-semibold mt-4 mb-8 mx-2">
+        Transaction History
+      </h3>
       {transactions.length === 0 ? (
         <div className="text-center py-4 text-gray-500">
           No transactions yet
