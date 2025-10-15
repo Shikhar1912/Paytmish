@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
+import accountApi from "../api/accountApi";
 import LoadingSpinner from "./LoadingSpinner";
 
 function TransactionHistory() {
@@ -9,14 +9,7 @@ function TransactionHistory() {
   useEffect(() => {
     const fetchTransactions = async () => {
       try {
-        const response = await axios.get(
-          import.meta.env.VITE_APP_API_ACC + "/transactions",
-          {
-            headers: {
-              Authorization: localStorage.getItem("token"),
-            },
-          }
-        );
+        const response = await accountApi.get("/transactions");
         setTransactions(response.data.transactions);
       } catch (error) {
         console.error("Error fetching transactions:", error);

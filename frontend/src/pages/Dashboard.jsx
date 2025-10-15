@@ -4,7 +4,8 @@ import Balance from "../components/Balance";
 import Users from "../components/Users";
 import TransactionHistory from "../components/TransactionHistory";
 import LoadingSpinner from "../components/LoadingSpinner";
-import axios from "axios";
+import userApi from "../api/userApi";
+import accountApi from "../api/accountApi";
 import { useStore } from "../../store";
 function Dashboard() {
   const [userList, setUserList] = useState([]);
@@ -13,20 +14,8 @@ function Dashboard() {
   console.log(userList);
   useEffect(() => {
     (async () => {
-      const response = await axios.get(
-        import.meta.env.VITE_APP_API_USER + "/?filter=",
-        {
-          headers: {
-            Authorization: localStorage.getItem("token"),
-          },
-        }
-      );
-      const accURL = import.meta.env.VITE_APP_API_ACC;
-      const userBalance = await axios.get(accURL + "/balance", {
-        headers: {
-          Authorization: localStorage.getItem("token"),
-        },
-      });
+      const response = await userApi.get("/?filter=");
+      const userBalance = await accountApi.get("/balance");
       setBalance(userBalance.data.balance);
       setUserList(response.data);
     })();

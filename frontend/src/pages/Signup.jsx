@@ -4,7 +4,7 @@ import Subheading from "../components/Subheading";
 import Inputbox from "../components/Inputbox";
 import Button from "../components/Button";
 import BottomWarning from "../components/BottomWarning";
-import axios from "axios";
+import userApi from "../api/userApi";
 import { useNavigate } from "react-router-dom";
 import { useStore } from "../../store";
 function Signup() {
@@ -54,10 +54,9 @@ function Signup() {
     }
 
     setIsLoading(true);
-    const userUrl = import.meta.env.VITE_APP_API_USER;
 
     try {
-      const res = await axios.post(userUrl + "/addUser", {
+      const res = await userApi.post("/addUser", {
         firstName,
         lastName,
         username,

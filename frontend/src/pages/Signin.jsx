@@ -4,7 +4,7 @@ import Button from "../components/Button";
 import Subheading from "../components/Subheading";
 import BottomWarning from "../components/BottomWarning";
 import { useState } from "react";
-import axios from "axios";
+import userApi from "../api/userApi";
 import { useNavigate } from "react-router-dom";
 import { useStore } from "../../store";
 
@@ -41,10 +41,9 @@ function Signin() {
     }
 
     setIsLoading(true);
-    const userUrl = import.meta.env.VITE_APP_API_USER;
 
     try {
-      const response = await axios.post(userUrl + "/getUser", {
+      const response = await userApi.post("/getUser", {
         username,
         password,
       });

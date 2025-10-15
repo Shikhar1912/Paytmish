@@ -5,6 +5,11 @@ import Dashboard from "./pages/Dashboard";
 import SendMoney from "./pages/SendMoney";
 import { Navigate } from "react-router-dom";
 import { useStore } from "../store";
+const ProtectedRoute = ({ children }) => {
+  const token = localStorage.getItem("token");
+  return token ? children : <Navigate to="/signin" replace />;
+};
+
 function App() {
   return (
     <div>
@@ -13,8 +18,8 @@ function App() {
           <Route path="/" element={<Navigate to="/signup" replace />} />
           <Route path="/signin" element={<Signin />} />
           <Route path="/signup" element={<Signup />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/send" element={<SendMoney />} />
+          <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+          <Route path="/send" element={<ProtectedRoute><SendMoney /></ProtectedRoute>} />
         </Routes>
       </BrowserRouter>
     </div>

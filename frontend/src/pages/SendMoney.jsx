@@ -4,7 +4,7 @@ import Button from "../components/Button";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { useStore } from "../../store";
-import axios from "axios";
+import accountApi from "../api/accountApi";
 
 function SendMoney() {
   const location = useLocation();
@@ -38,22 +38,13 @@ function SendMoney() {
     }
 
     setIsLoading(true);
-    const userUrl = import.meta.env.VITE_APP_API_ACC;
 
     try {
-      const response = await axios.put(
-        userUrl + "/transaction",
-        {
-          senderId: senderId,
-          recieverId: id,
-          amount: parseFloat(money),
-        },
-        {
-          headers: {
-            Authorization: localStorage.getItem("token"),
-          },
-        }
-      );
+      const response = await accountApi.put("/transaction", {
+        senderId: senderId,
+        recieverId: id,
+        amount: parseFloat(money),
+      });
       navigate("/dashboard");
       alert(response.data);
     } catch (err) {
